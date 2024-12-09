@@ -9,8 +9,16 @@ app.use(express.json()); // Parse JSON request bodies
 
 // Pre-set recipes data
 const recipes = [
-    { id: 1, name: "Spaghetti Carbonara", ingredients: ["Spaghetti", "Eggs", "Bacon"] },
-    { id: 2, name: "Chicken Salad", ingredients: ["Chicken", "Lettuce", "Dressing"] },
+    { id: 1, name: "Spaghetti Carbonara", ingredients: ["Spaghetti", "Eggs", "Bacon"], steps: [
+        "Boil spaghetti in salted water.",
+        "Cook bacon in a pan until crispy.",
+        "Mix eggs and cheese, then combine with hot spaghetti and bacon."
+    ] },
+    { id: 2, name: "Chicken Salad", ingredients: ["Chicken", "Lettuce", "Dressing"], steps: [
+        "Cook chicken in pan.",
+        "Chop lettuce.",
+        "Combine chicken, lettuce and dressing"
+    ]  },
 ];
 
 app.get("/", (req, res) => {
@@ -41,6 +49,24 @@ app.get("/recipes/:id", (req, res) => {
         res.status(404).json({ error: "Recipe not found" });
     }
 });
+
+app.post("/recipes", (req, res) => {
+    const { name, ingredients, steps } = req.body;
+    if (!name || !ingredients || !steps) {
+        return res.status(400).json({ error: "Name, ingredients and steps are required" });
+    }
+
+    const newRecipe = {
+        id: recipes.length + 1,
+        name,
+        ingredients,
+        steps
+    };
+
+    recipes.push(newRecipe);
+    res.status(201).json(newRecipe);
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
