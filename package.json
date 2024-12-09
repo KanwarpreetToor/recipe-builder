@@ -1,0 +1,12 @@
+{
+  "name": "recipe-builder",
+  "version": "1.0.0",
+  "description": "AI recipe builder project designed to help me come up with meals",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
