@@ -1,25 +1,40 @@
 const express = require("express");
 const cors = require("cors");
+const Recipe = require("./models/Recipe");
+
 const app = express();
 
 const PORT = process.env.PORT || 5000;
 
+
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json()); // Parse JSON request bodies
 
+require("dotenv").config();
+const mongoose = require("mongoose");
+
+const uri = process.env.MONGO_URI;
+
+mongoose.connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => console.log("Connected to MongoDB Atlas"))
+.catch((error) => console.error("Error connecting to MongoDB:", error));
+
 // Pre-set recipes data
-const recipes = [
-    { id: 1, name: "Spaghetti Carbonara", ingredients: ["Spaghetti", "Eggs", "Bacon"], steps: [
-        "Boil spaghetti in salted water.",
-        "Cook bacon in a pan until crispy.",
-        "Mix eggs and cheese, then combine with hot spaghetti and bacon."
-    ] },
-    { id: 2, name: "Chicken Salad", ingredients: ["Chicken", "Lettuce", "Dressing"], steps: [
-        "Cook chicken in pan.",
-        "Chop lettuce.",
-        "Combine chicken, lettuce and dressing"
-    ]  },
-];
+// const recipes = [
+//     { id: 1, name: "Spaghetti Carbonara", ingredients: ["Spaghetti", "Eggs", "Bacon"], steps: [
+//         "Boil spaghetti in salted water.",
+//         "Cook bacon in a pan until crispy.",
+//         "Mix eggs and cheese, then combine with hot spaghetti and bacon."
+//     ] },
+//     { id: 2, name: "Chicken Salad", ingredients: ["Chicken", "Lettuce", "Dressing"], steps: [
+//         "Cook chicken in pan.",
+//         "Chop lettuce.",
+//         "Combine chicken, lettuce and dressing"
+//     ]  },
+// ];
 
 app.get("/", (req, res) => {
     res.send("Welcome to the Recipe Builder API");
@@ -50,22 +65,24 @@ app.get("/recipes/:id", (req, res) => {
     }
 });
 
-app.post("/recipes", (req, res) => {
+app.post("/recipes", async (req, res) => {
     const { name, ingredients, steps } = req.body;
-    if (!name || !ingredients || !steps) {
-        return res.status(400).json({ error: "Name, ingredients and steps are required" });
+
+    if (!name || ingredients.length === 0 || steps.length === 0) {
+        return res.status(400).json({ error: "All fields are required" });
     }
 
-    const newRecipe = {
-        id: recipes.length + 1,
-        name,
-        ingredients,
-        steps
-    };
-
-    recipes.push(newRecipe);
-    res.status(201).json(newRecipe);
+    try {
+        const newRecipe = new Recipe({ name, ingredients, steps });
+        await newRecipe.save();
+        res.status(201).json(newRecipe);
+    } catch (error) {
+        console.error("Error saving recipe:", error);
+        res.status(500).json({ error: "Failed to save recipe" });
+    }
 });
+
+
 
 
 app.listen(PORT, () => {
